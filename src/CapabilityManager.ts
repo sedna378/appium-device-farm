@@ -102,16 +102,32 @@ export async function iOSCapabilities(
   caps.firstMatch[0]['appium:wdaLocalPort'] = freeDevice.wdaLocalPort = await getFreePort(
     options.portRange,
   );
-  if (freeDevice.realDevice && !caps.firstMatch[0]['df:skipReport']) {
-    const wdaFileName = freeDevice.platform === 'tvos' ? 'wda-resign_tvos.ipa' : 'wda-resign.ipa';
-    const wdaInfo = await prisma.appInformation.findFirst({
-      where: { fileName: wdaFileName },
-    });
-    if (wdaInfo && !process.env.GO_IOS) {
-      caps.firstMatch[0]['appium:usePreinstalledWDA'] = true;
-      caps.firstMatch[0]['appium:updatedWDABundleId'] = wdaInfo.appBundleId;
-      caps.firstMatch[0]['appium:updatedWDABundleIdSuffix'] = '';
-    } else if (wdaInfo && process.env.GO_IOS && !caps.alwaysMatch?.['appium:webDriverAgentUrl']) {
+	if (freeDevice.realDevice && !caps.firstMatch[0]['df:skipReport']) {
+		const wdaFileName = freeDevice.platform === 'tvos' ? 'wda-resign_tvos.ipa' : 'wda-resign.ipa';
+		const wdaInfo = await prisma.appInformation.findFirst({
+		  where: { fileName: wdaFileName },
+		});
+		if (wdaInfo && !process.env.GO_IOS) {
+	  const mergedCaps = Object.assign({}, caps.firstMatch[0], caps.alwaysMatch);
+	  const requestedUsePreinstalledWDA = mergedCaps['appium:usePreinstalledWDA'];
+
+	  const usePreinstalledWDA =
+		requestedUsePreinstalledWDA === undefined ? true : requestedUsePreinstalledWDA;
+
+	  if (!isCapabilityAlreadyPresent(caps, 'appium:usePreinstalledWDA')) {
+		caps.firstMatch[0]['appium:usePreinstalledWDA'] = usePreinstalledWDA;
+	  }
+
+	  if (usePreinstalledWDA) {
+		if (!isCapabilityAlreadyPresent(caps, 'appium:updatedWDABundleId')) {
+		  caps.firstMatch[0]['appium:updatedWDABundleId'] = wdaInfo.appBundleId;
+		}
+
+		if (!isCapabilityAlreadyPresent(caps, 'appium:updatedWDABundleIdSuffix')) {
+		  caps.firstMatch[0]['appium:updatedWDABundleIdSuffix'] = '';
+		}
+	  }
+	} else if (wdaInfo && process.env.GO_IOS && !caps.alwaysMatch?.['appium:webDriverAgentUrl']) {
       log.info('Setting webDriverAgentUrl for real device');
       caps.firstMatch[0]['appium:webDriverAgentUrl'] =
         freeDevice.webDriverAgentUrl = `${freeDevice.webDriverAgentHost}:${freeDevice.wdaLocalPort}`;
