@@ -90,9 +90,16 @@ export async function iOSCapabilities(
   caps.firstMatch[0]['appium:udid'] = freeDevice.udid;
   caps.firstMatch[0]['appium:deviceName'] = freeDevice.name;
   caps.firstMatch[0]['appium:platformVersion'] = freeDevice.sdk;
-  caps.firstMatch[0]['appium:wdaLocalPort'] = freeDevice.wdaLocalPort = await getFreePort(
     options.portRange,
   );
+  const requestedWdaLocalPort =
+    caps.alwaysMatch?.['appium:wdaLocalPort'] ??
+    caps.firstMatch[0]?.['appium:wdaLocalPort'];
+
+  freeDevice.wdaLocalPort =
+    requestedWdaLocalPort ?? (await getFreePort(options.portRange));
+
+  caps.firstMatch[0]['appium:wdaLocalPort'] = freeDevice.wdaLocalPort;
 	if (freeDevice.realDevice && !caps.firstMatch[0]['df:skipReport']) {
 		const wdaFileName = freeDevice.platform === 'tvos' ? 'wda-resign_tvos.ipa' : 'wda-resign.ipa';
 		const wdaInfo = await prisma.appInformation.findFirst({
