@@ -28,6 +28,10 @@ export enum DEVICE_FARM_CAPABILITIES {
   TAGS = 'tags',
 }
 
+function isCapabilityAlreadyPresent(caps: ISessionCapability, capabilityName: string) {
+  return _.has(caps.alwaysMatch, capabilityName) || _.has(caps.firstMatch[0], capabilityName);
+}
+
 function deleteAlwaysMatch(caps: ISessionCapability, capabilityName: string) {
   if (_.has(caps.alwaysMatch, capabilityName)) delete caps.alwaysMatch[capabilityName];
 }
