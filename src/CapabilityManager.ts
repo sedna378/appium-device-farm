@@ -90,8 +90,7 @@ export async function iOSCapabilities(
   caps.firstMatch[0]['appium:udid'] = freeDevice.udid;
   caps.firstMatch[0]['appium:deviceName'] = freeDevice.name;
   caps.firstMatch[0]['appium:platformVersion'] = freeDevice.sdk;
-    options.portRange,
-  );
+  caps.firstMatch[0]['appium:mjpegServerPort'] = freeDevice.mjpegServerPort;
   const requestedWdaLocalPort =
     caps.alwaysMatch?.['appium:wdaLocalPort'] ??
     caps.firstMatch[0]?.['appium:wdaLocalPort'];
